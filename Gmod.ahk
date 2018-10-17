@@ -317,5 +317,38 @@ DropBalance(callPolice:=false){ ;A quick-response money dropper for use in muggi
 	/=======================================================================\
 	|Beta Functions
 	|	Experimental features under development.
+	|	Also possibly features that are seen as cheating ingame, and should not be used except for experiments.
 	\=======================================================================/
 */
+AntiAFK(){ ;Prevents most AFK-detection mechanisms from registering you as idle in roles that are stationary, and often idle.
+	;This is designed to be used while sitting; it will toggle third person, instead of you being seen repeatedly crouching.
+	;Intended for use as roles that are AFK-limited, but have periods where it may seem like player is AFK, i.e.: sitting at desk as mayor.
+	;	Apparently the system will auto-demote you even while talking to others, and looking around, etc. Seems to be based on x/y/z movement.
+	;	Since roles will auto-demote if player stands still, desk roles often end up in false demotions. This is an attempt to resolve that.
+	;Not intended to facilitate actual AFK players, but rather to remedy the pains of true roleplayers. (Deskbound mayors, gov't agents, etc.)
+	Menu,Tray,Icon, Sprites/GmodActive.ico
+	Loop {
+		WinGetActiveStats,gameWinTitle,gameWinWidth,gameWinHeight,gameWinX,gameWinY
+		IfWinNotActive,Garry's Mod ahk_class Valve001 ahk_exe hl2.exe
+		{
+			ToolTip
+			break
+		}
+		ToolTip,Toggling thirdperson view...,gameWidth/2,0
+		SendInput, {Ctrl Down}
+		Random,buttonToggleWait,500,750
+		Sleep,buttonToggleWait
+		SendInput, {Ctrl Up}
+		Random,buttonToggleWait,1000,2000
+		Sleep,buttonToggleWait
+		SendInput, {Ctrl Down}
+		Random,buttonToggleWait,500,750
+		Sleep,buttonToggleWait
+		SendInput, {Ctrl Up}
+		Sleep,64
+		Random,waitTime,180000,200000
+		ToolTip,Delaying %waitTime%ms before toggling thirdperson view...,gameWidth/2,0
+		Sleep,waitTime
+	}
+	return
+}
