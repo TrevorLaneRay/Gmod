@@ -95,6 +95,29 @@ PingCivilCityServer(){
 	return
 }
 
+LaunchGmod(){ ;Checks if Gmod is running, and if not, offers to launch it. If the window is present, but hidden, it will bring it to the front, and snap it to the top-left corner of the screen.
+	IfWinNotExist,Garry's Mod ahk_class Valve001 ahk_exe hl2.exe
+	{
+		MsgBox, 36, Launch Garry's Mod?, There is no instance of Garry's Mod running.`nShould we launch it and connect to Civil City RP?
+		IfMsgBox,Yes
+			Run,steam://connect/cc.civilservers.net:27015/
+		IfMsgBox,No
+			return
+	}
+	IfWinExist,Garry's Mod ahk_class Valve001 ahk_exe hl2.exe
+	{
+		IfWinNotActive,Garry's Mod ahk_class Valve001 ahk_exe hl2.exe
+		{
+			ToolTip,Activating game window...,0,0
+			WinActivate,Garry's Mod ahk_class Valve001 ahk_exe hl2.exe
+			WinWaitActive,Garry's Mod ahk_class Valve001 ahk_exe hl2.exe
+			RepositionGameWindow()
+			ToolTip
+		}
+	}
+	return
+}
+
 /*
 	/=======================================================================\
 	|Main Functions
