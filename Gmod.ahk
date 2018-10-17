@@ -63,6 +63,7 @@ Pause:: Pause
 ;Global hotkeys.
 F5:: LaunchGmod()
 F6:: PingCivilCityServer()
+Joy4:: VCMinerManager(true,false) ;(Single-use on-demand trigger of VCMiner restart, intended for game controller use when reclined, away from keyboard. Will bring focus back to active window when done. (My favorite mode.))
 
 ;Ingame hotkeys.
 #IfWinActive:: Garry's Mod ahk_class Valve001 ahk_exe hl2.exe
@@ -72,6 +73,8 @@ F8:: ReportDeathAsRDM(false) ;Manual hotkey to report RDM.
 F9:: MaxNetConfigurator("SooperSeekritPassword","block",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, BLOCKING outbound hacks. (assumes console program is onscreen).
 +F9:: MaxNetConfigurator("SooperSeekritPassword","allow",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, ALLOWING outbound hacks.(assumes console program is onscreen).
 F10:: BitMinerFueler() ;Keeps bitminer fueled. (This is just a stupid fueler; it won't defend your base for you. Don't run this AFK.)
+F11:: VCMinerManager(true,false) ;Triggers a single-use manual restart of VCMiners.
++F11:: VCMinerManager(false,true) ;Starts AFK management of VCMiners (for extended breaks like laundry, officework, etc).
 
 /*
 	/=======================================================================\
@@ -453,6 +456,65 @@ BitMinerFueler(){ ;Automatically keeps generator fueled. (Intended to be run wit
 		Sleep,241000 ;(Basically, 250s, minus the amount of time it actually takes to spawn the four fuel cans.)
 	}
 	ToolTip
+	Menu,Tray,Icon, Sprites/Gmod.ico
+	return
+}
+
+VCMinerManager(ManualToggle=false, keepGameFocused:=true){
+	;Basic AFK VCMiner management. Keeps VCMiners running. Best used while sitting in a chair prop, looking at the screen, and with keys equipped. (Can't use MaxNet computer while sitting if you have grav/physgun equipped.)
+	Menu,Tray,Icon, Sprites/GmodActive.ico
+	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
+	ToolTip
+	Loop {
+		IfWinNotActive,Garry's Mod ahk_class Valve001 ahk_exe hl2.exe
+		{
+			if (!keepGameFocused) { ;If Gmod is not the aactive window, take note of the window that is active so we can return to it later.
+				WinGetActiveStats,activeWinTitle,activeWinWidth,activeWinHeight,activeWinX,activeWinY
+			}
+			LaunchGmod()
+		}
+		CheckForChatBox(true)
+		if CheckIfDead(true,false,false) {
+			ToolTip,Player died at %A_Now%,gameWidth/2,0
+			Menu,Tray,Icon, Sprites/Gmod.ico
+			return
+		}
+		if CheckIfDisconnected(true,false) {
+			ToolTip,Disconnected at %A_Now%...,gameWidth/2,0
+			Menu,Tray,Icon, Sprites/Gmod.ico
+			return
+		}
+		ToolTip,Starting VCMiners...,gameWidth/2,0
+		MouseClick,Left ;Unlock the MaxNet terminal, and show the command prompt.
+		Loop{
+			ImageSearch,blahX,blahY,674+2,438,711+2,447, *80 Sprites/MaxNetConsoleBoxTitle.fw.png
+		} until !ErrorLevel
+		Sendinput,vcmine start{Enter}
+		Sleep,1500
+		Sendinput,lock{Enter}
+		Sleep,64
+		SendInput,{LAlt Down} ;Close the MaxNet command prompt.
+		Sleep,64
+		SendInput,{LAlt Up}
+		Sleep,512
+		SendInput,{NumpadMult} ;Press keybind for "stopsound." Handy for watching videos on second screen.
+		ToolTip
+		if ManualToggle {
+			Menu,Tray,Icon, Sprites/Gmod.ico
+			if (!keepGameFocused) {
+				WinActivate,%activeWinTitle%
+			}
+			return
+		}
+		if CheckIfDead(true,false,false) { ;We run an additional death check here, in case death occurred while MaxNet computer was in use. (Possible scenario of someone camping the player, waiting for computer to be unlocked.)
+			ToolTip,Player died at %A_Now%,0,0
+			Menu,Tray,Icon, Sprites/Gmod.ico
+			return
+		}
+		Random,vcMinerRestartDelay,180000,300000 ;(3-5 minutes should be a decent range of time to expect VCMiners to stop at random.)
+		ToolTip,Waiting %vcMinerRestartDelay%ms before restarting miners...,gameWidth/2,0
+		Sleep,vcMinerRestartDelay
+	}
 	Menu,Tray,Icon, Sprites/Gmod.ico
 	return
 }
