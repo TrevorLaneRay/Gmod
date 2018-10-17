@@ -93,28 +93,6 @@ SoundTest(){
 	|Main Functions
 	\=======================================================================/
 */
-ReportDeathAsRDM(indicateAFK:=true){ ;Quickly fires off an admin chat message, reporting RDM.
-	;~ Optionally indicates that player was AFK at time of death; useful for scripted functionality where player is AFK, but wants to report any death.
-	;TODO: Add additional functionality to handle Admin Sit menu if it appears. (Unsure whether its absence after @-message is a bug.)
-	Menu,Tray,Icon, Sprites/GmodActive.ico
-	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
-	FormatTime, timeString, A_NowUTC,hh:mm:ss tt
-	if indicateAFK {
-		deathMessageString=% "@ AutoReport: RDM'd at " . timeString . " UTC; was AFK at time of death."
-	} else {
-		deathMessageString=% "@ RDM'd at " . timeString . " UTC"
-	}
-	Loop {
-		SendInput,y
-		ToolTip,Opening chatbox (Attempt %A_Index%)...,gameWidth/2,0
-		Sleep,2000
-	} until CheckForChatBox(false)
-	SendInput,%deathMessageString%{Enter}
-	Menu,Tray,Icon, Sprites/Gmod.ico
-	ToolTip
-	return
-}
-
 CheckForChatBox(closeChat:=true){ ;Checks to see if chat box is active, returning true/false, and optionally closes it. (Returns false once sucessfully closed. Returns true if not able to close.)
 	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
 	ImageSearch,blahX,blahY,40+2,741,71+2,752, *80 Sprites/ChatBoxActive.fw.png
@@ -138,6 +116,84 @@ CheckForChatBox(closeChat:=true){ ;Checks to see if chat box is active, returnin
 	} else {
 		return false
 	}
+	return
+}
+
+CheckIfDead(respawn:=false, irrelevantDeath:=false,reportDeathToAdmins:=false){
+	;~ Checks if player is dead, returning true/false. If so, optionally respawn.
+	;~ (Returns false once successfully respawned. Returns true if unable to respawn.
+	;~ irrelevantDeath argument will optionally return true even if we respawn. Optionally reports death as RDM to admins.)
+	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
+	ImageSearch,blahX,blahY,693+2,414,905+2,441, *80 Sprites/YouAreDeadPendingRespawn.fw.png
+	if !ErrorLevel {
+		;~ Scare the player to get their attention back on the game window.
+		SoundPlay,Sounds/InceptionNoise.mp3
+		if respawn {
+			deathTimestamp:=A_TickCount
+			ToolTip,Waiting for respawn timer...,gameWidth/2,0
+			Loop { ;Wait for the respawn timer...
+				ImageSearch,blahX,blahY,737+2,467,863+2,483, *150 Sprites/YouAreDeadReadyToRespawn.fw.png
+			} until !ErrorLevel
+			ToolTip,Attempting to respawn...,gameWidth/2,0
+			Loop { ;Press Space until we respawn. Bail out if we can't respawn within 30s.
+				if ((A_TickCount - deathTimestamp) >= 30000) { ;Just return true if we weren't able to respawn within 30s.
+					if reportDeathToAdmins
+						ReportDeathAsRDM(false)
+					return true
+				}
+				SendInput,{Space}
+				Sleep,2000
+				ImageSearch,blahX,blahY,693+2,414,905+2,441, *80 Sprites/YouAreDeadPendingRespawn.fw.png
+			} until ErrorLevel
+			ToolTip
+			if !irrelevantDeath {
+				if reportDeathToAdmins
+					ReportDeathAsRDM(false)
+				return true
+			} else {
+				if reportDeathToAdmins
+					ReportDeathAsRDM(false)
+				return false
+			}
+		} else {
+			if reportDeathToAdmins
+				ReportDeathAsRDM(false)
+			return true
+		}
+	} else {
+		if !irrelevantDeath {
+			if reportDeathToAdmins
+				ReportDeathAsRDM(false)
+			return false
+		} else {
+			if reportDeathToAdmins
+				ReportDeathAsRDM(false)
+			return true
+		}
+	}
+	return
+}
+
+ReportDeathAsRDM(indicateAFK:=true){ ;Quickly fires off an admin chat message, reporting RDM.
+	;~ Optionally indicates that player was AFK at time of death; useful for scripted functionality where player is AFK, but wants to report any death.
+	;~ TODO: Add additional functionality to handle Admin Sit menu if it appears. (Unsure whether its absence after @-message is a bug.)
+	;~ TODO: Possible to retrieve name of person comitting RDM from the console? RegEx the last few recent lines for an "x killed player" message?
+	Menu,Tray,Icon, Sprites/GmodActive.ico
+	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
+	FormatTime, timeString, A_NowUTC,hh:mm:ss tt
+	if indicateAFK {
+		deathMessageString=% "@ AutoReport: RDM'd at " . timeString . " UTC; was AFK at time of death."
+	} else {
+		deathMessageString=% "@ RDM'd at " . timeString . " UTC"
+	}
+	Loop {
+		SendInput,y
+		ToolTip,Opening chatbox (Attempt %A_Index%)...,gameWidth/2,0
+		Sleep,2000
+	} until CheckForChatBox(false)
+	SendInput,%deathMessageString%{Enter}
+	Menu,Tray,Icon, Sprites/Gmod.ico
+	ToolTip
 	return
 }
 
