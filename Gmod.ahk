@@ -61,7 +61,10 @@ Pause:: Pause
 ^+F12:: ExitApp
 
 ;~ Function Test Hotkey:
-F12:: MNEncrypt("Plaintext phrase to encode.","SooperSeekritPassword")
+F12:: MNDecrypt("AwMOGQsGNh0RSwIBBjESFlMDAHMKARMKFjZL","SooperSeekritPasswo") ;Max password length is 19char?
+;~ Plaintext: Plaintext phrase to encode.
+;~ Key: SooperSeekritPasswo
+;~ Ciphertext: AwMOGQsGNh0RSwIBBjESFlMDAHMKARMKFjZL
 
 ;Global hotkeys.
 F5:: LaunchGmod()
@@ -74,8 +77,8 @@ NumpadDiv:: HashDecoder()
 NumpadSub:: HoldMouseButton("LButton") ;Holds the left mouse button down.
 F7:: DropBalance(true) ;Drops currently held /balance, and optionally makes a quick call to cops.
 F8:: ReportDeathAsRDM(false) ;Manual hotkey to report RDM.
-F9:: MaxNetConfigurator("SooperSeekritPassword","block",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, BLOCKING outbound hacks. (assumes console program is onscreen).
-+F9:: MaxNetConfigurator("SooperSeekritPassword","allow",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, ALLOWING outbound hacks.(assumes console program is onscreen).
+F9:: MaxNetConfigurator("DerpyWhooves","block",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, BLOCKING outbound hacks. (assumes console program is onscreen).
++F9:: MaxNetConfigurator("DerpyWhooves","allow",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, ALLOWING outbound hacks.(assumes console program is onscreen).
 F10:: BitMinerFueler() ;Keeps bitminer fueled. (This is just a stupid fueler; it won't defend your base for you. Don't run this AFK.)
 F11:: VCMinerManager(true,false) ;Triggers a single-use manual restart of VCMiners.
 +F11:: VCMinerManager(false,true) ;Starts AFK management of VCMiners (for extended breaks like laundry, officework, etc).
@@ -585,10 +588,18 @@ VCMinerManager(ManualToggle=false, keepGameFocused:=true){
 
 MNDecrypt(cipherText:="",key:=""){
 	;~ Subtracts a key string's characters' values from a ciphertext string, and returns the resulting plaintext.
+	;~ How do we wrap the array to make sure our character codes stay within 32-126? Mod()? If <>?
+	;~ Hydrogen's MNEncrypt DOES include the control characters like NUL, SOH, STX, ETX, etc in the math. We just don't notice because it's Base64'd output.
+	;~ ...Was Hydrogen only intending on using MNEncrypt to cipher "." and 0-9 with A-Za-z key phrases?
+	ANSIChars:=["","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",""
+	," ","!","""","#","$","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?"
+	,"@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","[","\","]","^","_"
+	,"``","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","{","|","}","~"]
 	CipherTextCharacterArray:=Object()
 	KeyTextCharacterArray:=Object()
-	
-	Loop Parse, cipherText ;Create an array from the plaintext string.
+	DecryptedCharacterArray:=Object()
+	cipherTextCharPosition:=0
+	Loop Parse, cipherText ;Create an array of ANSI character codes from the ciphertext string.
 	{
 		CipherTextCharacterArray.Push(Asc(A_LoopField))
 	}
@@ -596,7 +607,12 @@ MNDecrypt(cipherText:="",key:=""){
 	{
 		KeyTextCharacterArray.Push(Asc(A_LoopField))
 	}
-	
+	DecryptionStart:
+	for index, keyIndex in KeyTextCharacterArray {
+		cipherTextCharPosition++
+		PlaintextANSI .= ANSIChars[(CipherTextCharacterArray[A_Index] + KeyTextCharacterArray[A_Index])] . ","
+	}
+	MsgBox, 64, Decoded String:, Ciphertext: %cipherText%`nKey: %key%`nPlaintextANSI: %PlaintextANSI%
 	return
 }
 
