@@ -71,6 +71,7 @@ F7:: DropBalance(true) ;Drops currently held /balance, and optionally makes a qu
 F8:: ReportDeathAsRDM(false) ;Manual hotkey to report RDM.
 F9:: MaxNetConfigurator("SooperSeekritPassword","block",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, BLOCKING outbound hacks. (assumes console program is onscreen).
 +F9:: MaxNetConfigurator("SooperSeekritPassword","allow",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, ALLOWING outbound hacks.(assumes console program is onscreen).
+F10:: BitMinerFueler() ;Keeps bitminer fueled. (This is just a stupid fueler; it won't defend your base for you. Don't run this AFK.)
 
 /*
 	/=======================================================================\
@@ -419,6 +420,38 @@ MaxNetConfigurator(routerPassword:="SooperSeekritPassword",blockOrAllowOutboundH
 	SendInput,{LAlt Down}
 	Sleep,64
 	SendInput,{LAlt Up}
+	ToolTip
+	Menu,Tray,Icon, Sprites/Gmod.ico
+	return
+}
+
+BitMinerFueler(){ ;Automatically keeps generator fueled. (Intended to be run with an empty generator on start.)
+	Menu,Tray,Icon, Sprites/GmodActive.ico
+	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
+	Loop {
+		Loop,4
+		{
+			CheckForChatBox(true) ;Close the chatbox if open; we can't use our keybind for /buybitminerfuel if it's open.
+			if CheckIfDead(true,false,false) {
+				ToolTip,Player died at %A_Now%,gameWidth/2,0
+				Menu,Tray,Icon, Sprites/Gmod.ico
+				return
+			}
+			ToolTip,Fueling... (%A_Index%x),gameWidth/2,0
+			Sendinput,v ;Change this to whatever key is bound to /buybitminerfuel
+			if (A_Index < 4) { ;Delays in between each spawning of fuel. (Except for after fourth one, since we don't need to respawn a fifth.)
+				Sleep 3000
+			}
+		}
+		CheckForChatBox(true)
+		if CheckIfDead(true,false,false) {
+			ToolTip,Player died at %A_Now%,gameWidth/2,0
+			Menu,Tray,Icon, Sprites/Gmod.ico
+			return
+		}
+		ToolTip,Waiting to refuel...,gameWidth/2,0
+		Sleep,241000 ;(Basically, 250s, minus the amount of time it actually takes to spawn the four fuel cans.)
+	}
 	ToolTip
 	Menu,Tray,Icon, Sprites/Gmod.ico
 	return
