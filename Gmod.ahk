@@ -67,6 +67,7 @@ F6:: PingCivilCityServer()
 ;Ingame hotkeys.
 #IfWinActive:: Garry's Mod ahk_class Valve001 ahk_exe hl2.exe
 NumpadSub:: HoldMouseButton("LButton") ;Holds the left mouse button down.
+F7:: DropBalance(true) ;Drops currently held /balance, and optionally makes a quick call to cops.
 F8:: ReportDeathAsRDM(false) ;Manual hotkey to report RDM.
 
 /*
@@ -263,6 +264,52 @@ ReportDeathAsRDM(indicateAFK:=true){ ;Quickly fires off an admin chat message, r
 	SendInput,%deathMessageString%{Enter}
 	Menu,Tray,Icon, Sprites/Gmod.ico
 	ToolTip
+	return
+}
+
+DropBalance(callPolice:=false){ ;A quick-response money dropper for use in mugging scenarios. Optionally places a quick call to police.
+	Menu,Tray,Icon, Sprites/GmodActive.ico
+	SendInput,{NumpadDiv}
+	Loop { ;Open chatbox.
+		if CheckForChatBox(false)
+			break
+		SendInput,y
+		Sleep,1000
+	}
+	Loop { ;Find our balance in chat. (Note that this uses the first appearance of a /balance message. TODO: rework to use the latest /balance message.)
+		ImageSearch,balanceX,balanceY,45+2,576,173+2,705,*80 Sprites/BalanceChatMessage.fw.png
+	} until !ErrorLevel
+	MouseClick,Left,balanceX+143,balanceY+5,2
+	Sleep,256
+	SendInput,{LCtrl Down}
+	Sleep,64
+	SendInput,c
+	Sleep,64
+	SendInput,{LCtrl Up}
+	balanceValue:=SubStr(Clipboard,2)
+	MouseClick,Left,100,746
+	Sleep,256
+	SendInput,/dropmoney %balanceValue%{Enter}
+	Sleep,1025
+	SendInput,{NumpadDiv}
+	if callPolice{
+		SendInput,5
+		Sleep,64
+		MouseClick,Left
+		Sleep,128
+		MouseClick,Right
+		Loop {
+			ImageSearch,ePhoneTitleX,ePhoneTitleY,734+2,408,763+2,417, *150 Sprites/PhoneMenuTitle.fw.png
+		} until !ErrorLevel
+		Sleep,64
+		MouseClick,Left,ePhoneTitleX+67,ePhoneTitleY+103
+		Sleep,128
+		SendInput,2
+		Sleep,64
+		MouseClick,Left
+		return
+	}
+	Menu,Tray,Icon, Sprites/Gmod.ico
 	return
 }
 
