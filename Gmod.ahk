@@ -88,6 +88,13 @@ SoundTest(){
 	return
 }
 
+PingCivilCityServer(){
+	;Fire up a quick command propmpt, pinging the game server until closed.
+	;Useful to quickly figure out if the server is reachable from clientside.
+	Run,cmd /C "ping cc.civilservers.net -n -1"
+	return
+}
+
 /*
 	/=======================================================================\
 	|Main Functions
