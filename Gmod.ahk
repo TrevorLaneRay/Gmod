@@ -67,6 +67,7 @@ Joy4:: VCMinerManager(true,false) ;(Single-use on-demand trigger of VCMiner rest
 
 ;Ingame hotkeys.
 #IfWinActive:: Garry's Mod ahk_class Valve001 ahk_exe hl2.exe
+NumpadDiv:: HashDecoder()
 NumpadSub:: HoldMouseButton("LButton") ;Holds the left mouse button down.
 F7:: DropBalance(true) ;Drops currently held /balance, and optionally makes a quick call to cops.
 F8:: ReportDeathAsRDM(false) ;Manual hotkey to report RDM.
@@ -516,5 +517,65 @@ VCMinerManager(ManualToggle=false, keepGameFocused:=true){
 		Sleep,vcMinerRestartDelay
 	}
 	Menu,Tray,Icon, Sprites/Gmod.ico
+	return
+}
+
+HashDecoder(){
+	global ;Necessary to work with clipboard values.
+	Clipboard := "" ;Clear the clipboard for use.
+	;~ TODO: Work on adding number values to the caesar cipher (they remain unchanged by the process, so just pass them through).
+	;~ TODO: Add a check to make sure our MaxNet command prompt is open, so we can actually copy/paste values to/from it. (Immediately do nothing if it's not open.)
+	encryptedString := "" ;Clear a variable for use.
+	;~ Select everything in a text box, and hit Ctrl+C to copy it.
+	SendInput,{Ctrl down}
+	Sleep,64
+	SendInput,a
+	Sleep,64
+	SendInput,c
+	Sleep,64
+	SendInput,{Ctrl up}
+	ClipWait,2 ;Wait for the copied text to appear in the clipboard.
+	
+	;If we're just dealing with unicode character codes, jump straight to running it through a Chr().
+	UnicodeRegEx := RegExMatch(Clipboard,"([\d]{1,3})+")
+	if UnicodeRegEx
+		goto UnicodeDecoder
+
+	CaesarDecoder: ;Shift a set of characters by 28 (or -1) positions.
+	key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	Loop, Parse, Clipboard
+	{
+		if A_LoopField == "A"
+		{
+			;Wrap uppercase Z's to A.
+			encryptedString .= "Z"
+			continue
+		}
+		if A_LoopField == "a"
+		{
+			;Wrap lowercase z's to a.
+			encryptedString .= "z"
+			continue
+		}
+		;~ Append the letter 28 positions down from the hashed letter to the encryptedString.
+		encryptedString .= SubStr(key, Mod(Instr(key, A_LoopField, True) -1, StrLen(key)), 1)
+	}
+	goto, OutputString
+	
+	UnicodeDecoder:
+	Loop, Parse, Clipboard,`,
+	{
+		encryptedString .= Chr(A_LoopField)
+	}
+	
+	OutputString:
+	;Paste the results of our decoded string, so we can decide what to do with it.
+	Clipboard := encryptedString
+	Sendinput,{Ctrl down}
+	Sleep,64
+	Sendinput,v
+	Sleep,64
+	Sendinput,{Ctrl up}
+	Sleep,64
 	return
 }
