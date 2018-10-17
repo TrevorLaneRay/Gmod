@@ -388,9 +388,8 @@ HashDecoder(){
 
 /*
 	/=======================================================================\
-	|Beta Functions
-	|	Experimental features under development.
-	|	Also possibly features that are seen as cheating ingame, and should not be used except for experiments.
+	|Dubious Functions
+	|	Features that are likely to be seen seen as cheating ingame, and should not be used except for experiments.
 	\=======================================================================/
 */
 AntiAFK(){ ;Prevents most AFK-detection mechanisms from registering you as idle in roles that are stationary, and often idle.
@@ -586,11 +585,42 @@ VCMinerManager(ManualToggle=false, keepGameFocused:=true){
 	return
 }
 
+/*
+	/=======================================================================\
+	|Beta Functions (Beware - here be dragons.)
+	|	Stuff that's currently being thought over, and likely horribly broken in places.
+	\=======================================================================/
+*/
+Base64Decode(ByRef Bin,Code,IsString = 0){ ;Simple Base64 decoding function.
+	static CharSet := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+	StringReplace Code, Code, =,, All
+	Length := StrLen(Code), VarSetCapacity(Bin,Ceil((Length / 4) * 3),0), Index := 1, BinPos := 0
+	Loop, % Length // 4
+	Temp1 := ((InStr(CharSet,SubStr(Code,Index,1),True) - 1) << 18) | ((InStr(CharSet,SubStr(Code,Index + 1,1),True) - 1) << 12) | ((InStr(CharSet,SubStr(Code,Index + 2,1),True) - 1) << 6) | (InStr(CharSet,SubStr(Code,Index + 3,1),True) - 1), NumPut((Temp1 >> 16) | (((Temp1 >> 8) & 255) << 8) | ((Temp1 & 255) << 16),Bin,BinPos,"UInt"), Index += 4, BinPos += 3
+	If (Length & 3)
+	{
+		Temp1 := ((InStr(CharSet,SubStr(Code,Index,1),True) - 1) << 18) | ((InStr(CharSet,SubStr(Code,Index + 1,1),True) - 1) << 12), NumPut(Temp1 >> 16,Bin,BinPos,"UChar")
+		If (Length & 1)
+			Temp1 |= ((InStr(CharSet,SubStr(Code,Index + 2,1),True) - 1) << 6), NumPut((Temp1 >> 8) & 255,Bin,BinPos + 1,"UChar")
+	}
+	If IsString
+		VarSetCapacity(Bin,-1)
+}
+
 MNDecrypt(cipherText:="",key:=""){
-	;~ Subtracts a key string's characters' values from a ciphertext string, and returns the resulting plaintext.
-	;~ How do we wrap the array to make sure our character codes stay within 32-126? Mod()? If <>?
-	;~ Hydrogen's MNEncrypt DOES include the control characters like NUL, SOH, STX, ETX, etc in the math. We just don't notice because it's Base64'd output.
-	;~ ...Was Hydrogen only intending on using MNEncrypt to cipher "." and 0-9 with A-Za-z key phrases?
+	/*
+		Subtracts (or does it add?) a key string's characters' values from a ciphertext string, and returns the resulting plaintext.
+		How do we wrap the array to make sure our character codes stay within 32-126? Mod()? If <>?
+			Hydrogen's MNEncrypt DOES include the control characters like NUL, SOH, STX, ETX, etc in the math. We just don't notice because it's Base64'd output.
+			...Was Hydrogen only intending on using MNEncrypt to cipher "." and 0-9 with A-Za-z key phrases?
+			...No need to worry about there being control characters? Just Base64 the string, and be done with it?
+		The math of adding/subtracting the characters' values to/from each other doesn't add up. Something else, simple, is being done.
+			Could there be a stupidly-simple offset somewhere, just to throw us off? Hydrogen's smart like that.
+		Will have to expect a Base64 string, decode it directly into a plaintext variable, then run a string parse loop on each character of the string.
+			Then we have to figure out the relation between the Key and the Ciphertext.
+				We know the key has a RELATIVE effect on the text, but it doesn't explain the irregularity in the pattern of (attempted) decoded text.
+			Will need to do additional experimenting with Hydro's MNEncrypt to deduce what the relation is.
+	*/
 	ANSIChars:=["","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",""
 	," ","!","""","#","$","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?"
 	,"@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","[","\","]","^","_"
