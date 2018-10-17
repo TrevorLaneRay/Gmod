@@ -128,6 +128,28 @@ LaunchGmod(){ ;Checks if Gmod is running, and if not, offers to launch it. If th
 	return
 }
 
+CheckIfDisconnected(reconnect:=false,irrelevantDisconnection:=false){
+	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
+	ImageSearch,blahX,blahY,631+2,464,776+2,473, *80 Sprites/LostConnectionToServer.fw.png
+	if !ErrorLevel {
+		SoundPlay,Sounds/InceptionNoise.mp3
+		if reconnect {
+			Run,steam://connect/cc.civilservers.net:27015/
+			;TODO: Add functionality to determine that we actually make it back into the game after attempting to reconnect
+			if !irrelevantDisconnection { ;Return true even if we were able to reconnect.
+				return true
+			} else {
+				return false
+			}
+		} else {
+			return true
+		}
+	} else {
+		return false
+	}
+	return
+}
+
 /*
 	/=======================================================================\
 	|Main Functions
