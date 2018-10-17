@@ -55,9 +55,19 @@ if !A_IsAdmin {
 	|	vk07sc000: Guide Button (Does this even work in Windows 10?)
 	\=======================================================================/
 */
+;~ Script control hotkeys.
 Pause:: Pause
 +F12:: Reload
 ^+F12:: ExitApp
+
+;Global hotkeys.
+F5:: LaunchGmod()
+F6:: PingCivilCityServer()
+
+;Ingame hotkeys.
+#IfWinActive:: Garry's Mod ahk_class Valve001 ahk_exe hl2.exe
+NumpadSub:: HoldMouseButton("LButton") ;Holds the left mouse button down.
+F8:: ReportDeathAsRDM(false) ;Manual hotkey to report RDM.
 
 /*
 	/=======================================================================\
