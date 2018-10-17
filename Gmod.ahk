@@ -69,6 +69,8 @@ F6:: PingCivilCityServer()
 NumpadSub:: HoldMouseButton("LButton") ;Holds the left mouse button down.
 F7:: DropBalance(true) ;Drops currently held /balance, and optionally makes a quick call to cops.
 F8:: ReportDeathAsRDM(false) ;Manual hotkey to report RDM.
+F9:: MaxNetConfigurator("SooperSeekritPassword","block",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, BLOCKING outbound hacks. (assumes console program is onscreen).
++F9:: MaxNetConfigurator("SooperSeekritPassword","allow",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, ALLOWING outbound hacks.(assumes console program is onscreen).
 
 /*
 	/=======================================================================\
@@ -350,5 +352,74 @@ AntiAFK(){ ;Prevents most AFK-detection mechanisms from registering you as idle 
 		ToolTip,Delaying %waitTime%ms before toggling thirdperson view...,gameWidth/2,0
 		Sleep,waitTime
 	}
+	return
+}
+
+MaxNetConfigurator(routerPassword:="SooperSeekritPassword",blockOrAllowOutboundHacks:="block",configMiners:=true, walletAddress:="761RPX88W6U16RNG33784B3A5Y34HUDH"){ ;Expedites the router configuration for MaxNet deployment.
+	Menu,Tray,Icon, Sprites/GmodActive.ico
+	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
+	MouseClick,Left
+	ToolTip,Waiting for MaxNet console...,gameWidth/2,0
+	Loop{
+		ImageSearch,blahX,blahY,674+2,438,711+2,447, *80 Sprites/MaxNetConsoleBoxTitle.fw.png
+	} until !ErrorLevel
+	ToolTip,Configuring MaxNet settings...,gameWidth/2,0
+	if configMiners {
+		Sendinput,vcmine set_wallet %walletAddress%{Enter}
+		Sleep,1500
+		Sendinput,vcmine start{Enter}
+		Sleep,1500
+	}
+	Sendinput,router settings admin_password %routerPassword%{Enter}
+	Sleep,1500
+	Sendinput,router login %routerPassword%{Enter}
+	Sleep,1500
+	Sendinput,cls{Enter}
+	Sleep,1500
+	Sendinput,router settings hide_terminals true{Enter}
+	Sleep,1500
+	Sendinput,router firewall block MN_PROTOCOL_REMOTE{Enter}
+	Sleep,1500
+	Sendinput,router firewall block MN_PROTOCOL_REMOTE_ATTEMPT{Enter}
+	Sleep,1500
+	Sendinput,router firewall block MN_PROTOCOL_REMOTE_COMMAND{Enter}
+	Sleep,1500
+	Sendinput,router firewall block MN_PROTOCOL_MESSAGE{Enter}
+	Sleep,1500
+	Sendinput,router firewall block MN_PROTOCOL_MANAGER_SCAN{Enter}
+	Sleep,1500
+	Sendinput,router firewall %blockOrAllowOutboundHacks% MN_PROTOCOL_REMOTE out{Enter}
+	Sleep,1500
+	Sendinput,router firewall %blockOrAllowOutboundHacks% MN_PROTOCOL_REMOTE_ATTEMPT out{Enter}
+	Sleep,1500
+	Sendinput,router firewall %blockOrAllowOutboundHacks% MN_PROTOCOL_REMOTE_COMMAND out{Enter}
+	Sleep,1500
+	Sendinput,router firewall %blockOrAllowOutboundHacks% MN_PROTOCOL_MESSAGE out{Enter}
+	Sleep,1500
+	Sendinput,router firewall %blockOrAllowOutboundHacks% MN_PROTOCOL_MANAGER_SCAN out{Enter}
+	Sleep,1500
+	Sendinput,router settings firewall_enabled true{Enter}
+	Sleep,1500
+	Sendinput,firewall block MN_PROTOCOL_REMOTE{Enter}
+	Sleep,1500
+	Sendinput,firewall block MN_PROTOCOL_REMOTE_ATTEMPT{Enter}
+	Sleep,1500
+	Sendinput,firewall block MN_PROTOCOL_REMOTE_COMMAND{Enter}
+	Sleep,1500
+	Sendinput,firewall block MN_PROTOCOL_MESSAGE{Enter}
+	Sleep,1500
+	Sendinput,firewall block MN_PROTOCOL_MANAGER_SCAN{Enter}
+	Sleep,1500
+	Sendinput,firewall enable{Enter}
+	Sleep,1500
+	Sendinput,router settings admin_password %routerPassword%{Enter} ;Setting the password a second time here secures the router so that raiders can't divulge it through subsequent use of "router settings" on an unlocked pc.
+	Sleep,1500
+	Sendinput,cls{Enter}
+	Sleep,64
+	SendInput,{LAlt Down}
+	Sleep,64
+	SendInput,{LAlt Up}
+	ToolTip
+	Menu,Tray,Icon, Sprites/Gmod.ico
 	return
 }
