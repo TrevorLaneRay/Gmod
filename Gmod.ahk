@@ -13,7 +13,7 @@ TODO:
 #SingleInstance,ignore
 #InstallKeybdHook
 #InstallMouseHook
-Version = 0.0.0
+Version = 0.0.2
 Menu,Tray,Tip,Gmod Macros v.%Version%
 Menu,Tray,Icon, Sprites/Gmod.ico
 
@@ -91,11 +91,30 @@ SoundTest(){
 /*
 	/=======================================================================\
 	|Main Functions
-	|Notes:
-	|	ImageSearch,blahX,blahY,709+2,454,761+2,464, *80 Sprites/MaxNetTextEntryBoxTitle.fw.png
-	|	ImageSearch,blahX,blahY,674+2,438,711+2,447, *80 Sprites/MaxNetConsoleBoxTitle.fw.png
 	\=======================================================================/
 */
+ReportDeathAsRDM(indicateAFK:=true){ ;Quickly fires off an admin chat message, reporting RDM.
+	;~ Optionally indicates that player was AFK at time of death; useful for scripted functionality where player is AFK, but wants to report any death.
+	;TODO: Add additional functionality to handle Admin Sit menu if it appears. (Unsure whether its absence after @-message is a bug.)
+	Menu,Tray,Icon, Sprites/GmodActive.ico
+	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
+	FormatTime, timeString, A_NowUTC,hh:mm:ss tt
+	if indicateAFK {
+		deathMessageString=% "@ AutoReport: RDM'd at " . timeString . " UTC; was AFK at time of death."
+	} else {
+		deathMessageString=% "@ RDM'd at " . timeString . " UTC"
+	}
+	Loop {
+		SendInput,y
+		ToolTip,Opening chatbox (Attempt %A_Index%)...,gameWidth/2,0
+		Sleep,2000
+	} until CheckForChatBox(false)
+	SendInput,%deathMessageString%{Enter}
+	Menu,Tray,Icon, Sprites/Gmod.ico
+	ToolTip
+	return
+}
+
 CheckForChatBox(closeChat:=true){ ;Checks to see if chat box is active, returning true/false, and optionally closes it. (Returns false once sucessfully closed. Returns true if not able to close.)
 	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
 	ImageSearch,blahX,blahY,40+2,741,71+2,752, *80 Sprites/ChatBoxActive.fw.png
