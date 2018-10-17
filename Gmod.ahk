@@ -93,6 +93,13 @@ SoundTest(){
 	|Main Functions
 	\=======================================================================/
 */
+HoldMouseButton(mouseButton:="LButton"){
+	;Holds down specified mouse button. Great for mining with a pickaxe or repairing a car, since it requires you to hold down the mouse button for a long time.
+	SendInput,{%mouseButton% Down}
+	Sleep,64
+	return
+}
+
 CheckForChatBox(closeChat:=true){ ;Checks to see if chat box is active, returning true/false, and optionally closes it. (Returns false once sucessfully closed. Returns true if not able to close.)
 	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
 	ImageSearch,blahX,blahY,40+2,741,71+2,752, *80 Sprites/ChatBoxActive.fw.png
