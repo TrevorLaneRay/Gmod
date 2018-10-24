@@ -62,9 +62,9 @@ Pause:: Pause
 
 ;~ Function Test Hotkey:
 F12:: MNDecrypt("AwMOGQsGNh0RSwIBBjESFlMDAHMKARMKFjZL","SooperSeekritPasswo") ;Max password length is 19char?
-;~ Plaintext: Plaintext phrase to encode.
-;~ Key: SooperSeekritPasswo
-;~ Ciphertext: AwMOGQsGNh0RSwIBBjESFlMDAHMKARMKFjZL
+;~ Plaintext: "Plaintext phrase to encode."
+;~ Key: "SooperSeekritPasswo"
+;~ Ciphertext: "AwMOGQsGNh0RSwIBBjESFlMDAHMKARMKFjZL"
 
 ;Global hotkeys.
 F5:: LaunchGmod()
@@ -77,8 +77,8 @@ NumpadDiv:: HashDecoder()
 NumpadSub:: HoldMouseButton("LButton") ;Holds the left mouse button down.
 F7:: DropBalance(true) ;Drops currently held /balance, and optionally makes a quick call to cops.
 F8:: ReportDeathAsRDM(false) ;Manual hotkey to report RDM.
-F9:: MaxNetConfigurator("DerpyWhooves","block",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, BLOCKING outbound hacks. (assumes console program is onscreen).
-+F9:: MaxNetConfigurator("DerpyWhooves","allow",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, ALLOWING outbound hacks.(assumes console program is onscreen).
+F9:: MaxNetConfigurator("WatsonMuffins","block",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, BLOCKING outbound hacks. (assumes console program is onscreen).
++F9:: MaxNetConfigurator("WatsonMuffins","allow",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, ALLOWING outbound hacks.(assumes console program is onscreen).
 F10:: BitMinerFueler() ;Keeps bitminer fueled. (This is just a stupid fueler; it won't defend your base for you. Don't run this AFK.)
 F11:: VCMinerManager(true,false) ;Triggers a single-use manual restart of VCMiners.
 +F11:: VCMinerManager(false,true) ;Starts AFK management of VCMiners (for extended breaks like laundry, officework, etc).
@@ -331,6 +331,10 @@ HashDecoder(){
 	Clipboard := "" ;Clear the clipboard for use.
 	;~ TODO: Work on adding number values to the caesar cipher (they remain unchanged by the process, so just pass them through).
 	;~ TODO: Add a check to make sure our MaxNet command prompt is open, so we can actually copy/paste values to/from it. (Immediately do nothing if it's not open.)
+	;~ TODO: Add parameter to allow for Caesar cipher shift index. It will always be 28/-1 on CC, but it seems to be random on CG Downtown.
+		;~ Could the shift index be relative to some key, like time of hash generation, or unique to a host?
+		;~ If a host has its own preset cshift index, what would be a good way to supply the appropriate cshift index for hash decode?
+		;~ Would we end up with an InputBox prompting the user for the intended hostname/domain/IP to use an enumerated cshift index?
 	encryptedString := "" ;Clear a variable for use.
 	;~ Select everything in a text box, and hit Ctrl+C to copy it.
 	SendInput,{Ctrl down}
