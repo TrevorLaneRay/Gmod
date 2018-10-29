@@ -10,7 +10,7 @@ TODO:
 	Implement dynamic coordinates for ImageSearch across different window sizes.
 */
 
-#SingleInstance,ignore
+#SingleInstance,force
 #InstallKeybdHook
 #InstallMouseHook
 Version = 0.0.2
@@ -60,8 +60,8 @@ Pause:: Pause
 +F12:: Reload
 ^+F12:: ExitApp
 
-;~ Function Test Hotkey:
-F12:: MNDecrypt("AwMOGQsGNh0RSwIBBjESFlMDAHMKARMKFjZL","SooperSeekritPasswo") ;Max password length is 19char?
+;~ Function Test Hotkeys:
+;~ F12:: MNDecrypt("AwMOGQsGNh0RSwIBBjESFlMDAHMKARMKFjZL","SooperSeekritPasswo") ;Max password length is 19char?
 ;~ Plaintext: "Plaintext phrase to encode."
 ;~ Key: "SooperSeekritPasswo"
 ;~ Ciphertext: "AwMOGQsGNh0RSwIBBjESFlMDAHMKARMKFjZL"
@@ -77,11 +77,13 @@ NumpadDiv:: HashDecoder()
 NumpadSub:: HoldMouseButton("LButton") ;Holds the left mouse button down.
 F7:: DropBalance(true) ;Drops currently held /balance, and optionally makes a quick call to cops.
 F8:: ReportDeathAsRDM(false) ;Manual hotkey to report RDM.
-F9:: MaxNetConfigurator("WatsonMuffins","block",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, BLOCKING outbound hacks. (assumes console program is onscreen).
-+F9:: MaxNetConfigurator("WatsonMuffins","allow",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, ALLOWING outbound hacks.(assumes console program is onscreen).
+F9:: MaxNetConfigurator("DerpyWhooves","block",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, BLOCKING outbound hacks. (assumes console program is onscreen).
++F9:: MaxNetConfigurator("DerpyWhooves","allow",true,"761RPX88W6U16RNG33784B3A5Y34HUDH") ;Configures MaxNet terminal after deployment, ALLOWING outbound hacks.(assumes console program is onscreen).
 F10:: BitMinerFueler() ;Keeps bitminer fueled. (This is just a stupid fueler; it won't defend your base for you. Don't run this AFK.)
 F11:: VCMinerManager(true,false) ;Triggers a single-use manual restart of VCMiners.
-+F11:: VCMinerManager(false,true) ;Starts AFK management of VCMiners (for extended breaks like laundry, officework, etc).
++F11:: VCMinerManager(false,true,"timed") ;Starts AFK management of VCMiners (for extended breaks like laundry, officework, etc).
+F12:: AutoReloadWeapon()
+^F12:: AutoAmmoBuyer(2000)
 
 /*
 	/=======================================================================\
@@ -530,8 +532,10 @@ BitMinerFueler(){ ;Automatically keeps generator fueled. (Intended to be run wit
 	return
 }
 
-VCMinerManager(ManualToggle=false, keepGameFocused:=true){
+VCMinerManager(ManualToggle=false, keepGameFocused:=true, restartMode:="timed"){
 	;Basic AFK VCMiner management. Keeps VCMiners running. Best used while sitting in a chair prop, looking at the screen, and with keys equipped. (Can't use MaxNet computer while sitting if you have grav/physgun equipped.)
+	;ManualToggle is whether or not to treat this as one-off. If not keepGameFocused, we activate the previously active window. RestartMode (timed/reactive) chooses whether to restart at a fixed interval, or rather to react to a VCMiner stopping.
+	;~ TODO: Work on functionality for reactive triggering of vcmine start.
 	Menu,Tray,Icon, Sprites/GmodActive.ico
 	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
 	ToolTip
@@ -554,6 +558,42 @@ VCMinerManager(ManualToggle=false, keepGameFocused:=true){
 			Menu,Tray,Icon, Sprites/Gmod.ico
 			return
 		}
+		if InStr(restartMode, "reactive",true)
+		{
+			;~ Coordinates for the X1/Y1/X2/Y2 corners of each VCMiner's status display are set by the MouseGetPos on each corner, with the user guided by tooltips.
+			;~ We expect the user to have freed their cursor for this with F3, so that their view angle is fixed in place at their monitor while we specify VCMiner status indicator regions.
+			Loop,4
+			{
+				ToolTip,Move mouse to Miner #%A_Index%'s X1/Y1 and left-click...,gameWidth/2,0
+				KeyWait,LButton,D
+				KeyWait,LButton
+				MouseGetPos,miner%A_Index%X1,miner%A_Index%Y1
+				ToolTip,Move mouse to Miner #%A_Index%'s X2/Y2 and left-click...,gameWidth/2,0
+				KeyWait,LButton,D
+				KeyWait,LButton
+				MouseGetPos,miner%A_Index%X2,miner%A_Index%Y2
+			}
+			;~ These regions within the corners will be PixelSearched for the red color of a "Stopped" status. If found, the loop here will stop, and we proceed with firing up a "vcmine start."
+			ToolTip,Watching VCMiners' Status...,gameWidth/2,0
+			Loop{
+				PixelSearch,blahX,blahY,miner1X1,miner1Y1,miner1X2,miner1Y2,0xCB272F,30
+				if !ErrorLevel
+					break
+				Sleep,64
+				PixelSearch,blahX,blahY,miner2X1,miner2Y1,miner2X2,miner2Y2,0xCB272F,30
+				if !ErrorLevel
+					break
+				Sleep,64
+				PixelSearch,blahX,blahY,miner3X1,miner3Y1,miner3X2,miner3Y2,0xCB272F,30
+				if !ErrorLevel
+					break
+				Sleep,64
+				PixelSearch,blahX,blahY,miner4X1,miner4Y1,miner4X2,miner4Y2,0xCB272F,30
+				if !ErrorLevel
+					break
+				Sleep,64
+			}
+		}
 		ToolTip,Starting VCMiners...,gameWidth/2,0
 		MouseClick,Left ;Unlock the MaxNet terminal, and show the command prompt.
 		Loop{
@@ -566,7 +606,7 @@ VCMinerManager(ManualToggle=false, keepGameFocused:=true){
 		SendInput,{LAlt Down} ;Close the MaxNet command prompt.
 		Sleep,64
 		SendInput,{LAlt Up}
-		Sleep,512
+		Sleep,1000
 		SendInput,{NumpadMult} ;Press keybind for "stopsound." Handy for watching videos on second screen.
 		ToolTip
 		if ManualToggle {
@@ -581,9 +621,12 @@ VCMinerManager(ManualToggle=false, keepGameFocused:=true){
 			Menu,Tray,Icon, Sprites/Gmod.ico
 			return
 		}
-		Random,vcMinerRestartDelay,180000,300000 ;(3-5 minutes should be a decent range of time to expect VCMiners to stop at random.)
-		ToolTip,Waiting %vcMinerRestartDelay%ms before restarting miners...,gameWidth/2,0
-		Sleep,vcMinerRestartDelay
+		if InStr(restartMode, "timed",true)
+		{
+			Random,vcMinerRestartDelay,180000,300000 ;(3-5 minutes should be a decent range of time to expect VCMiners to stop at random.)
+			ToolTip,Waiting %vcMinerRestartDelay%ms before restarting miners...,gameWidth/2,0
+			Sleep,vcMinerRestartDelay
+		}
 	}
 	Menu,Tray,Icon, Sprites/Gmod.ico
 	return
@@ -595,6 +638,43 @@ VCMinerManager(ManualToggle=false, keepGameFocused:=true){
 	|	Stuff that's currently being thought over, and likely horribly broken in places.
 	\=======================================================================/
 */
+AutoAmmoBuyer(purchaseDelay:=2000){ ;Annoyed by the delay on buying ammo from the F4 menu? ...*slaps roof* This baby can hold up to 100 magazines.
+	;~ NOTE: You can use the following command to bind the purchose of a desired ammo from the F4 list:
+	;~ bind i "say /buyammo 7"
+	;~ (This, for example, would buy the seventh ammo in the F4>Ammo list. (In this case, Big Rifle Ammo.))
+	Loop{
+		ToolTip,Purchasing Ammo...(x%A_Index%),gameWidth/2,0
+		SendInput,i
+		ToolTip,Waiting...(x%A_Index%),gameWidth/2,0
+		Sleep, purchaseDelay
+	}
+	return
+}
+
+AutoReloadWeapon(){ ;Keeps an eye on our weapon's ammo, immediately triggering a reload if the magazine is empty.
+	WinGetActiveStats,gameTitle,gameWidth,gameHeight,gameX,gameY
+	WatchAmmoCount:
+	ToolTip,Waiting to reload...,gameWidth/2,0
+	Loop{
+		ImageSearch,blahX,blahY,1300-10,853-10,(1300+165)+10,(853+40)+10, *Trans0xFF00FF *10 Sprites/EmptyMagazine.fw.png
+	} until !ErrorLevel
+	;~ Problem here is if we check for a "0" immediately to the left of the magazine's count, we would end up thinking we have no ammo when we have a multiple of 10 spare magazines.
+	;~ We instead run a looped ImageSearch to make sure we actually reload, and bail out if we couldn't successfully reload within 6 seconds.
+	;~ (I assume 6 seconds is the rough average time it takes to reload a weapon. In this case, an M27 IAR. Change if desired.)
+	ToolTip,Reloading...,gameWidth/2,0
+	SendInput,R
+	reloadTime := A_TickCount
+	Loop{ ;Wait here until we actually end up with ammo.
+		if ((A_TickCount - reloadTime) >= 6000) { ;Bail out if it's been more than six seconds since we've tried to reload.
+			MsgBox, 48, Out of ammo?, Looks like we ran out of ammo to reload with.`nWe'll reload the script now.
+			Reload
+		}
+		ImageSearch,blahX,blahY,1300-10,853-10,(1300+165)+10,(853+40)+10, *Trans0xFF00FF *10 Sprites/EmptyMagazine.fw.png
+	} until ErrorLevel
+	goto,WatchAmmoCount
+	return
+}
+
 Base64Decode(ByRef Bin,Code,IsString = 0){ ;Simple Base64 decoding function.
 	static CharSet := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 	StringReplace Code, Code, =,, All
